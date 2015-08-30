@@ -2,48 +2,62 @@ var bg,fg;
 var bgCtx, fgCtx;
 
 var stage=[
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 2, 1, 0, 0, 0, 0],
-[0, 0, 0, 0, 1, 2, 1, 0, 0, 0],
-[0, 0, 0, 0, 2, 0, 2, 0, 0, 0],
-[0, 0, 0, 0, 1, 0, 1, 0, 0, 0]
+[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 1, 2, 1, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 9],
+[9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
 ];
 
 var dropping=[
-	[1, 2],
+	[1, 2, 0],
 	[0, 1, 2],
 ];
 
 var blockShapes=[
 	[
-		[1,1,1,1],
+		[0, 0, 0, 0],
+		[1, 1, 1, 1],
 	],
 	[
-		[1,1,1],
-		[0,1,0]
+		[0, 1, 0, 0],
+		[1, 1, 1, 0],
 	],
 	[
-		[0,1,1],
-		[1,1,0]
+		[0, 1, 1, 0],
+		[1, 1, 0, 0],
 	],
 	[
-		[1,1],
-		[1,1]
+		[1, 1, 0, 0],
+		[0, 1, 1, 0],
+	],
+	[
+		[1, 0, 0, 0],
+		[1, 1, 1, 0],
+	],
+	[
+		[0, 0, 1, 0],
+		[1, 1, 1, 0],
+	],
+	[
+		[0, 1, 1, 0],
+		[0, 1, 1, 0],
 	]
 ];
 
@@ -59,9 +73,9 @@ var dropTimer=new Date();
 var eventTimer=new Date();
 var updateDelay=1000/60;
 var dropDelay=500;
-var eventDelay=100;
+var eventDelay=60;
 
-var isPushed={left: false, up: false, right: false, down: false};
+var isPushed={left: false, up: false, right: false, down: false, z:false};
 
 var dropState=0,DROPPING=0,CLEAR_LINE=1,SLIDE_BLOCKS=2;
 
@@ -99,13 +113,13 @@ function drawStage(){
 
 function drawBlocks(){
 	for(var i=0;i<stage.length;i++){
-		for(var j=0;j<stage[i].length;j++){
+		for(var j=1;j<stage[i].length-1;j++){
 			switch(stage[i][j]){
 				case 1: //white
-					fgCtx.drawImage(white, 20+j*32, i*32);
+					fgCtx.drawImage(white, j*32-12, i*32);
 				break;
 				case 2: //black
-					fgCtx.drawImage(black, 20+j*32, i*32);
+					fgCtx.drawImage(black, j*32-12, i*32);
 				break;
 				default:
 				break; //none
@@ -120,10 +134,10 @@ function drawDropping(){
 		for(var j=0;j<dropping[i].length;j++){
 			switch(dropping[i][j]){
 				case 1: //white
-					fgCtx.drawImage(white, 20+(dx+j)*32, (dy+i)*32);
+					fgCtx.drawImage(white, (dx+j)*32-12, (dy+i)*32);
 				break;
 				case 2: //black
-					fgCtx.drawImage(black, 20+(dx+j)*32, (dy+i)*32);
+					fgCtx.drawImage(black, (dx+j)*32-12, (dy+i)*32);
 				break;
 				default: //none
 				break;
@@ -138,24 +152,14 @@ function clearFg(){
 }
 
 function dropBlock(){
-	var conflict=false;
-
-	for(var i=0;i<dropping.length;i++){
-		for(var j=0;j<dropping[i].length;j++){
-			if(dropping[i][j]>0 && stage[dy+i+1][dx+j]>0){
-				conflict=true;
-				break;
-			}
-		}
-	}
-	if(conflict){
+	if(checkCollide(dx, dy+1)){
 		for(var i=0;i<dropping.length;i++){
 			for(var j=0;j<dropping[i].length;j++){
 				if(dropping[i][j]>0)stage[dy+i][dx+j]=dropping[i][j];
-				
 			}
 		}
 		newDropping();
+		return true;
 	}else{
 		dy++;
 	}
@@ -166,30 +170,60 @@ function newDropping(){
 
 	var shape=blockShapes[blockShapes.length*Math.random()|0];
 	var combi=[0,0,0,0];
-	var replace=0;
+	var rep=0;
 
 	for(var i=0;i<4;i++){
 		combi[i]=1+(Math.random()*2|0);
 	}
 	for(var i=0;i<shape.length;i++){
 		for(var j=0;j<shape[i].length;j++){
-			if(shape[i][j]>0)shape[i][j]=combi[replace];
-			console.log(combi[replace]);
-			replace++;
+			if(shape[i][j]>0){
+				shape[i][j]=combi[rep];
+				rep++;
+			}
 		}
 	}
 
 	dropping=shape;
 }
 
+function checkCollide(cx, cy){
+	var collision=false;
+	for(var i=0;i<dropping.length;i++){
+		for(var j=0;j<dropping[i].length;j++){
+			if(dropping[i][j]>0 && stage[cy+i][cx+j]>0){
+				collision=true;
+				break;
+			}
+		}
+	}
+	return collision;
+}
+
+function rotateLeft(){
+	var t=[];
+	for(var i=0;i<dropping.length;i++){
+		for(var j=0;j<dropping[i].length;j++){
+			t[j][i]=dropping[i][j];
+		}
+	}
+	dropping=t;
+}
+
 function update(){
+	var isCollide=false;
 	if(new Date() - eventTimer>eventDelay && dropState==DROPPING){
 		if(isPushed.left){
-			dx--;
-			if(dx<0)dx=0;
+			if(checkCollide(dx-1, dy)==false)dx--;
 		}else if(isPushed.right){
-			dx++;
-			if(dx>9)dx=9;
+			if(checkCollide(dx+1, dy)==false)dx++;
+		}else if(isPushed.up){
+			while(isCollide==false){
+				if(dropBlock()==true)isCollide=true;
+			};
+		}else if(isPushed.down){
+			dropBlock();
+			dropTimer=new Date();
 		}
 		eventTimer=new Date();
 	}
@@ -254,6 +288,9 @@ function setEventListener(){
 			case 40:
 				isPushed.down=true;
 			break;
+			case 90:
+				isPushed.z=true;
+			break;
 			default:
 			break;
 		}
@@ -272,6 +309,9 @@ function setEventListener(){
 			break;
 			case 40:
 				isPushed.down=false;
+			break;
+			case 90:
+				isPushed.z=false;
 			break;
 			default:
 			break;
