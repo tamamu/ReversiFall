@@ -200,11 +200,16 @@ function checkCollide(cx, cy){
 	return collision;
 }
 
-function rotateLeft(){
-	var t=[];
+function rotateRight(){
+	var blockWidth=dropping[0].length;
+	var blockHeight=dropping.length;
+	var t=new Array(blockWidth);
+	for(var i=0;i<blockWidth;i++){
+		t[i]=new Array(blockHeight);
+	}
 	for(var i=0;i<dropping.length;i++){
 		for(var j=0;j<dropping[i].length;j++){
-			t[j][i]=dropping[i][j];
+			t[dropping[i].length-j-1][i]=dropping[i][j];
 		}
 	}
 	dropping=t;
@@ -214,16 +219,18 @@ function update(){
 	var isCollide=false;
 	if(new Date() - eventTimer>eventDelay && dropState==DROPPING){
 		if(isPushed.left){
-			if(checkCollide(dx-1, dy)==false)dx--;
+			if(checkCollide(dx-1, dy)===false)dx--;
 		}else if(isPushed.right){
-			if(checkCollide(dx+1, dy)==false)dx++;
+			if(checkCollide(dx+1, dy)===false)dx++;
 		}else if(isPushed.up){
-			while(isCollide==false){
-				if(dropBlock()==true)isCollide=true;
-			};
+			while(isCollide===false){
+				if(dropBlock()===true)isCollide=true;
+			}
 		}else if(isPushed.down){
 			dropBlock();
 			dropTimer=new Date();
+		}else if(isPushed.z){
+			rotateRight();
 		}
 		eventTimer=new Date();
 	}

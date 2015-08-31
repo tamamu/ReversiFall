@@ -16,8 +16,11 @@ Puzzle game that combines Reversi and Tetris.
 
 ↓：高速落下
 
-## Error
+Z：ミノ右回転
+
+## Bug & Error
 - [x] ミノのステージ下端との当たり判定で配列はみ出し
+- [] ミノを壁際で回転させた時の食い込み
 
 ## TODO
 - [x] ミノ移動
