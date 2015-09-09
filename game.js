@@ -17,17 +17,23 @@ var stage=[
 [9, 9, 9, 9, 9, 9, 9, 9],
 ];
 
-var dropping=[
-	[1, 2],
-	[0, 1]
+var stageDiff=[
+[0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
-
-
-
-
-
-
+var dropping=[[0,0],[0,0]];
 
 var frameTimer=new Date();
 var dropTimer=new Date();
@@ -37,7 +43,7 @@ var dropDelay=1000;
 var eventDelay=80;
 
 var isPushed={left: false, up: false, right: false, down: false, z:false, x:false};
-
+var eventTimer={left: 0, up: 0, right: 0, down: 0, z: 0, x:0};
 var dropState=0,DROPPING=0,CLEAR_LINE=1,SLIDE_BLOCKS=2;
 
 var dx=3;
@@ -63,6 +69,7 @@ window.onload=function(){
 	fgCtx=fg.getContext("2d");
 
 	drawStage();
+	newDropping();
 	gameLoop();
 
 	setEventListener();
@@ -119,10 +126,27 @@ function clearFg(){
 
 function dropBlock(){
 	if(checkCollide(dx, dy+1)){
-		for(var i=0;i<dropping.length;i++){
-			for(var j=0;j<dropping[i].length;j++){
-				if(dropping[i][j]>0)stage[dy+i][dx+j]=dropping[i][j];
+		for(var i=1;i>=0;i--){
+			for(var j=1;j>=0;j--){
+				if(dropping[i][j]>0){
+					var collision=false;
+					var fy=0;
+					while(collision==false){
+						if(stage[dy+i+fy+1][dx+j]>0){
+							collision=true;
+						}else{
+							fy++;
+						}
+					}
+					stage[dy+i+fy][dx+j]=dropping[i][j];
+				}
 			}
+		}
+
+		var isCleared=false;
+		while(isCleared==false){
+			if(clearHorizontal()+clearVertical()==0)isCleared=true;
+			applyDiff();
 		}
 		newDropping();
 		return true;
@@ -130,6 +154,7 @@ function dropBlock(){
 		dy++;
 	}
 }
+
 function newDropping(){
 	dy=0;
 	dx=3;
@@ -177,38 +202,45 @@ function checkCollide(cx, cy){
 }
 
 function rotateLeft(){
-	var blockWidth=dropping[0].length;
-	var blockHeight=dropping.length;
-	var t=new Array(blockWidth);
-	var collision=false;
-	for(var i=0;i<blockWidth;i++){
-		t[i]=new Array(blockHeight);
-	}
-	for(var i=0;i<dropping.length;i++){
-		for(var j=0;j<dropping[i].length;j++){
+	var t=[[0,0],[0,0]];
+	var collisionRotate=false;
+	var collisionLeft=false;
+	var collisionRight=false;
+	for(var i=0;i<2;i++){
+		for(var j=0;j<2;j++){
 			t[j][dropping.length-i-1]=dropping[i][j];
 		}
 	}
-
 	for(var i=0;i<2;i++){
 		for(var j=0;j<2;j++){
 			if(t[i][j]>0 && stage[dy+i][dx+j]>0){
-				collision=true;
+				collisionRotate=true;
 				break;
 			}
 		}
 	}
-	if(collision){//回転時衝突
-		collision=false;
+
+	if(collisionRotate){
 		for(var i=0;i<2;i++){
 			for(var j=0;j<2;j++){
 				if(t[i][j]>0 && stage[dy+i][dx+j-1]>0){
-					collision=true;
-					break;
+					collisionLeft=true;
 				}
 			}
 		}
-		if(collision){//左にずらした時衝突
+		if(collisionLeft || dx<1){
+			console.log("collision left");
+			for(var i=0;i<2;i++){
+				for(var j=0;j<2;j++){
+					if(t[i][j]>0 && stage[dy+i][dx+j+1]>0){
+						collisionRight=true;
+					}
+				}
+			}
+			if(collisionRight){}else{
+				dropping=t;
+				dx++;
+			}
 		}else{
 			dropping=t;
 			dx--;
@@ -219,41 +251,48 @@ function rotateLeft(){
 }
 
 function rotateRight(){
-	var blockWidth=dropping[0].length;
-	var blockHeight=dropping.length;
-	var t=new Array(blockWidth);
-	var collision=false;
-	for(var i=0;i<blockWidth;i++){
-		t[i]=new Array(blockHeight);
-	}
-	for(var i=0;i<dropping.length;i++){
-		for(var j=0;j<dropping[i].length;j++){
+	var t=[[0,0],[0,0]];
+	var collisionRotate=false;
+	var collisionLeft=false;
+	var collisionRight=false;
+	for(var i=0;i<2;i++){
+		for(var j=0;j<2;j++){
 			t[dropping[i].length-j-1][i]=dropping[i][j];
 		}
 	}
-
 	for(var i=0;i<2;i++){
 		for(var j=0;j<2;j++){
 			if(t[i][j]>0 && stage[dy+i][dx+j]>0){
-				collision=true;
+				collisionRotate=true;
 				break;
 			}
 		}
 	}
-	if(collision){//回転時衝突
-		collision=false;
+
+	if(collisionRotate){
 		for(var i=0;i<2;i++){
 			for(var j=0;j<2;j++){
-				if(t[i][j]>0 && stage[dy+i][dx+j+1]>0){
-					collision=true;
-					break;
+				if(t[i][j]>0 && stage[dy+i][dx+j-1]>0){
+					collisionLeft=true;
 				}
 			}
 		}
-		if(collision){//右にずらした時衝突
+		if(collisionLeft || dx<1){
+			console.log("collision left");
+			for(var i=0;i<2;i++){
+				for(var j=0;j<2;j++){
+					if(t[i][j]>0 && stage[dy+i][dx+j+1]>0){
+						collisionRight=true;
+					}
+				}
+			}
+			if(collisionRight){}else{
+				dropping=t;
+				dx++;
+			}
 		}else{
 			dropping=t;
-			dx++;
+			dx--;
 		}
 	}else{
 		dropping=t;
@@ -262,26 +301,35 @@ function rotateRight(){
 
 function update(){
 	var isCollide=false;
-	if(new Date() - eventTimer>eventDelay && dropState==DROPPING){
-		if(isPushed.left){
-			if(checkCollide(dx-1, dy)===false)dx--;
-		}else if(isPushed.right){
-			if(checkCollide(dx+1, dy)===false)dx++;
-		}else if(isPushed.up){
+	if(dropState==DROPPING){
+		var now=new Date();
+		if(isPushed.left && now - eventTimer.left > eventDelay){
+			if(checkCollide(dx-1, dy)===false){
+				dx--;
+				eventTimer.left=now;
+			}
+		}else if(isPushed.right && now - eventTimer.right > eventDelay){
+			if(checkCollide(dx+1, dy)===false){
+				dx++;
+				eventTimer.right=now;
+			}
+		}else if(isPushed.up && now - eventTimer.up > eventDelay){
 			while(isCollide===false){
 				if(dropBlock()===true)isCollide=true;
 			}
-		}else if(isPushed.down){
+			eventTimer.up=now;
+		}else if(isPushed.down && now - eventTimer.down > eventDelay){
 			dropBlock();
 			dropTimer=new Date();
-		}else if(isPushed.z){
+			eventTimer.down=now;
+		}else if(isPushed.z && now - eventTimer.z > eventDelay){
 			rotateLeft();
-		}else if(isPushed.x){
+			eventTimer.z=now;
+		}else if(isPushed.x && now - eventTimer.x > eventDelay){
 			rotateRight();
+			eventTimer.x=now;
 		}
-		eventTimer=new Date();
 	}
-	//横の移動阻止判定
 	//横１列消し?
 	if(new Date() - dropTimer>dropDelay){
 		dropBlock();
@@ -291,28 +339,98 @@ function update(){
 
 
 function clearHorizontal(){
-	var beforeColor=0;//1white 2black
+	var beforeColor=0;
+	var match=0;
 	var bondStart=0;
 	var isBond=false;
+	var line=0;
 
-	//white
+	for(var i=stage.length-2;i>=0;i--){
+		match=0;
+		for(var j=0;j<stage[i].length;j++){
+			if(stage[i][j] > 0 && stage[i][j] == beforeColor){
+				match++;
+			}else{
+				if(match>=5){
+					for(var k=0;k<match;k++){
+						stageDiff[i][bondStart+k]=1;
+					}
+					line++;
+				}
+				bondStart=j;
+				beforeColor=stage[i][j];
+				match=1;
+			}
+		}
+	}
+
+	return line;
+}
+
+function clearVertical(){
+	var beforeColor=0;
+	var match=0;
+	var bondStart=0;
+	var isBond=false;
+	var line=0;
+
+	for(var j=stage[0].length-2;j>=0;j--){
+		match=0;
+		for(var i=stage.length-2;i>=0;i--){
+			if(stage[i][j] > 0 && stage[i][j] == beforeColor){
+				match++;
+			}else{
+				if(match>=5){
+					for(var k=0;k<match;k++){
+						stageDiff[bondStart-k][j]=1;
+					}
+					line++;
+				}
+				bondStart=i;
+				beforeColor=stage[i][j];
+				match=1;
+			}
+		}
+	}
+
+	return line;
+}
+
+function applyDiff(){
 	for(var i=0;i<stage.length;i++){
 		for(var j=0;j<stage[i].length;j++){
-			switch(stage[i][j]){
-				case 1:
-					if(beforeColor==1){
-						isBond=true;
+			if(stageDiff[i][j]==1){
+				stage[i][j]=0;
+				stageDiff[i][j]=0;
+			}
+		}
+	}
+	pushBlocks();
+}
+
+function pushBlocks(){
+	var collision=false;
+	var fy=0;
+	for(var i=stage.length-2;i>=0;i--){
+		for(var j=0;j<stage[i].length;j++){
+			if(stage[i][j]>0){
+				collision=false;
+				fy=0;
+				while(collision==false){
+					if(stage[i+fy+1][j]>0){
+						collision=true;
+					}else{
+						fy++;
 					}
-				break;
-				case 2:
-				break;
-				default:
-				break;
+				}
+				if(fy>0){
+					stage[i+fy][j]=stage[i][j];
+					stage[i][j]=0;
+				}
 			}
 		}
 	}
 }
-
 
 function gameLoop(){
 	if(new Date() - frameTimer>updateDelay){
