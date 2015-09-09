@@ -2,63 +2,24 @@ var bg,fg;
 var bgCtx, fgCtx;
 
 var stage=[
-[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 1, 2, 1, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 9],
-[9, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 9],
-[9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+[9, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 9],
+[9, 9, 9, 9, 9, 9, 9, 9],
 ];
 
 var dropping=[
-	[1, 2, 0],
-	[0, 1, 2],
-];
-
-var blockShapes=[
-	[
-		[0, 0, 0, 0],
-		[1, 1, 1, 1],
-	],
-	[
-		[0, 1, 0, 0],
-		[1, 1, 1, 0],
-	],
-	[
-		[0, 1, 1, 0],
-		[1, 1, 0, 0],
-	],
-	[
-		[1, 1, 0, 0],
-		[0, 1, 1, 0],
-	],
-	[
-		[1, 0, 0, 0],
-		[1, 1, 1, 0],
-	],
-	[
-		[0, 0, 1, 0],
-		[1, 1, 1, 0],
-	],
-	[
-		[0, 1, 1, 0],
-		[0, 1, 1, 0],
-	]
+	[1, 2],
+	[0, 1]
 ];
 
 
@@ -72,10 +33,10 @@ var frameTimer=new Date();
 var dropTimer=new Date();
 var eventTimer=new Date();
 var updateDelay=1000/60;
-var dropDelay=500;
-var eventDelay=60;
+var dropDelay=1000;
+var eventDelay=80;
 
-var isPushed={left: false, up: false, right: false, down: false, z:false};
+var isPushed={left: false, up: false, right: false, down: false, z:false, x:false};
 
 var dropState=0,DROPPING=0,CLEAR_LINE=1,SLIDE_BLOCKS=2;
 
@@ -83,10 +44,13 @@ var dx=3;
 var dy=0;
 
 var white=new Image();
-white.src="white.png";
+white.src="white_stone.png";
 
 var black=new Image();
-black.src="black.png";
+black.src="black_stone.png";
+
+var frame=new Image();
+frame.src="frame.png";
 
 
 window.onload=function(){
@@ -108,7 +72,7 @@ function drawStage(){
 	bgCtx.fillStyle="black";
 	bgCtx.fillRect(0, 0, bg.width, bg.height);
 	bgCtx.fillStyle="green";
-	bgCtx.fillRect(20, 0, 320, 640);
+	bgCtx.fillRect(30, 0, 300, 640);
 }
 
 function drawBlocks(){
@@ -116,10 +80,10 @@ function drawBlocks(){
 		for(var j=1;j<stage[i].length-1;j++){
 			switch(stage[i][j]){
 				case 1: //white
-					fgCtx.drawImage(white, j*32-12, i*32);
+					fgCtx.drawImage(white, j*50-20, i*50+40);
 				break;
 				case 2: //black
-					fgCtx.drawImage(black, j*32-12, i*32);
+					fgCtx.drawImage(black, j*50-20, i*50+40);
 				break;
 				default:
 				break; //none
@@ -129,15 +93,17 @@ function drawBlocks(){
 }
 
 function drawDropping(){
+	
 	fgCtx.globalAlpha=0.5;
+	fgCtx.drawImage(frame, dx*50-20, dy*50+40);
 	for(var i=0;i<dropping.length;i++){
 		for(var j=0;j<dropping[i].length;j++){
 			switch(dropping[i][j]){
 				case 1: //white
-					fgCtx.drawImage(white, (dx+j)*32-12, (dy+i)*32);
+					fgCtx.drawImage(white, (dx+j)*50-20, (dy+i)*50+40);
 				break;
 				case 2: //black
-					fgCtx.drawImage(black, (dx+j)*32-12, (dy+i)*32);
+					fgCtx.drawImage(black, (dx+j)*50-20, (dy+i)*50+40);
 				break;
 				default: //none
 				break;
@@ -168,19 +134,29 @@ function newDropping(){
 	dy=0;
 	dx=3;
 
-	var shape=blockShapes[blockShapes.length*Math.random()|0];
+	var shape=[[0,0],[0,0]];
 	var combi=[0,0,0,0];
 	var rep=0;
 
-	for(var i=0;i<4;i++){
-		combi[i]=1+(Math.random()*2|0);
+	var stone=0;
+
+	for(var i=0;i<3;i++){
+		var c=Math.random()*3|0;
+		if(c>0){
+			combi[i]=c;
+			stone++;
+		}
 	}
+	if(stone==0){
+		combi[3]=1+(Math.random()*2|0);
+	}else{
+		combi[3]=Math.random()*3|0;
+	}
+
 	for(var i=0;i<shape.length;i++){
 		for(var j=0;j<shape[i].length;j++){
-			if(shape[i][j]>0){
 				shape[i][j]=combi[rep];
 				rep++;
-			}
 		}
 	}
 
@@ -200,10 +176,53 @@ function checkCollide(cx, cy){
 	return collision;
 }
 
+function rotateLeft(){
+	var blockWidth=dropping[0].length;
+	var blockHeight=dropping.length;
+	var t=new Array(blockWidth);
+	var collision=false;
+	for(var i=0;i<blockWidth;i++){
+		t[i]=new Array(blockHeight);
+	}
+	for(var i=0;i<dropping.length;i++){
+		for(var j=0;j<dropping[i].length;j++){
+			t[j][dropping.length-i-1]=dropping[i][j];
+		}
+	}
+
+	for(var i=0;i<2;i++){
+		for(var j=0;j<2;j++){
+			if(t[i][j]>0 && stage[dy+i][dx+j]>0){
+				collision=true;
+				break;
+			}
+		}
+	}
+	if(collision){//回転時衝突
+		collision=false;
+		for(var i=0;i<2;i++){
+			for(var j=0;j<2;j++){
+				if(t[i][j]>0 && stage[dy+i][dx+j-1]>0){
+					collision=true;
+					break;
+				}
+			}
+		}
+		if(collision){//左にずらした時衝突
+		}else{
+			dropping=t;
+			dx--;
+		}
+	}else{
+		dropping=t;
+	}
+}
+
 function rotateRight(){
 	var blockWidth=dropping[0].length;
 	var blockHeight=dropping.length;
 	var t=new Array(blockWidth);
+	var collision=false;
 	for(var i=0;i<blockWidth;i++){
 		t[i]=new Array(blockHeight);
 	}
@@ -212,7 +231,33 @@ function rotateRight(){
 			t[dropping[i].length-j-1][i]=dropping[i][j];
 		}
 	}
-	dropping=t;
+
+	for(var i=0;i<2;i++){
+		for(var j=0;j<2;j++){
+			if(t[i][j]>0 && stage[dy+i][dx+j]>0){
+				collision=true;
+				break;
+			}
+		}
+	}
+	if(collision){//回転時衝突
+		collision=false;
+		for(var i=0;i<2;i++){
+			for(var j=0;j<2;j++){
+				if(t[i][j]>0 && stage[dy+i][dx+j+1]>0){
+					collision=true;
+					break;
+				}
+			}
+		}
+		if(collision){//右にずらした時衝突
+		}else{
+			dropping=t;
+			dx++;
+		}
+	}else{
+		dropping=t;
+	}
 }
 
 function update(){
@@ -230,6 +275,8 @@ function update(){
 			dropBlock();
 			dropTimer=new Date();
 		}else if(isPushed.z){
+			rotateLeft();
+		}else if(isPushed.x){
 			rotateRight();
 		}
 		eventTimer=new Date();
@@ -298,6 +345,9 @@ function setEventListener(){
 			case 90:
 				isPushed.z=true;
 			break;
+			case 88:
+				isPushed.x=true;
+			break;
 			default:
 			break;
 		}
@@ -319,6 +369,9 @@ function setEventListener(){
 			break;
 			case 90:
 				isPushed.z=false;
+			break;
+			case 88:
+				isPushed.x=false;
 			break;
 			default:
 			break;
