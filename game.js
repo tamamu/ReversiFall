@@ -14,6 +14,8 @@ var stage=[
 [9, 0, 0, 0, 0, 0, 0, 9],
 [9, 0, 0, 0, 0, 0, 0, 9],
 [9, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 9],
+[9, 0, 0, 0, 0, 0, 0, 9],
 [9, 9, 9, 9, 9, 9, 9, 9],
 ];
 
@@ -31,7 +33,12 @@ var stageDiff=[
 [0, 0, 0, 0, 0, 0, 0, 0],
 [0, 0, 0, 0, 0, 0, 0, 0],
 [0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0],
 ];
+
+var scoreDOM;
+var score=0;
 
 var dropping=[[0,0],[0,0]];
 
@@ -44,7 +51,7 @@ var eventDelay=80;
 
 var isPushed={left: false, up: false, right: false, down: false, z:false, x:false};
 var eventTimer={left: 0, up: 0, right: 0, down: 0, z: 0, x:0};
-var dropState=0,DROPPING=0,CLEAR_LINE=1,SLIDE_BLOCKS=2;
+var dropState=0,DROPPING=0,CLEAR_LINE=1,SLIDE_BLOCKS=2,GAMEOVER=3;
 
 var dx=3;
 var dy=0;
@@ -58,6 +65,12 @@ black.src="black_stone.png";
 var frame=new Image();
 frame.src="frame.png";
 
+var bgm=new Audio("bgm.mp3");
+bgm.loop=true;
+bgm.play();
+
+var sound={};
+var soundStock={};
 
 window.onload=function(){
 	bg=document.getElementById("bg");
@@ -68,12 +81,32 @@ window.onload=function(){
 	bgCtx=bg.getContext("2d");
 	fgCtx=fg.getContext("2d");
 
+	scoreDOM=document.getElementById("score");
+
+	loadSound(0, "drop.mp3", 10);
+	loadSound(1, "del.mp3", 3);
+	loadSound(2, "over.mp3", 1);
+
 	drawStage();
 	newDropping();
 	gameLoop();
 
 	setEventListener();
 };
+
+function loadSound(num, file, stock){
+	sound[num]=new Array(stock);
+	soundStock[num]=0;
+	for(var i=0;i<sound[num].length;i++){
+		sound[num][i]=new Audio(file);
+	}
+}
+
+function playSound(num){
+	sound[num][soundStock[num]].play();
+	soundStock[num]++;
+	if(soundStock[num]>sound[num].length-1)soundStock[num]=0;
+}
 
 function drawStage(){
 	bgCtx.fillStyle="black";
@@ -87,10 +120,10 @@ function drawBlocks(){
 		for(var j=1;j<stage[i].length-1;j++){
 			switch(stage[i][j]){
 				case 1: //white
-					fgCtx.drawImage(white, j*50-20, i*50+40);
+					fgCtx.drawImage(white, j*50-20, i*50-60);
 				break;
 				case 2: //black
-					fgCtx.drawImage(black, j*50-20, i*50+40);
+					fgCtx.drawImage(black, j*50-20, i*50-60);
 				break;
 				default:
 				break; //none
@@ -102,15 +135,15 @@ function drawBlocks(){
 function drawDropping(){
 	
 	fgCtx.globalAlpha=0.5;
-	fgCtx.drawImage(frame, dx*50-20, dy*50+40);
+	fgCtx.drawImage(frame, dx*50-20, dy*50-60);
 	for(var i=0;i<dropping.length;i++){
 		for(var j=0;j<dropping[i].length;j++){
 			switch(dropping[i][j]){
 				case 1: //white
-					fgCtx.drawImage(white, (dx+j)*50-20, (dy+i)*50+40);
+					fgCtx.drawImage(white, (dx+j)*50-20, (dy+i)*50-60);
 				break;
 				case 2: //black
-					fgCtx.drawImage(black, (dx+j)*50-20, (dy+i)*50+40);
+					fgCtx.drawImage(black, (dx+j)*50-20, (dy+i)*50-60);
 				break;
 				default: //none
 				break;
@@ -126,30 +159,50 @@ function clearFg(){
 
 function dropBlock(){
 	if(checkCollide(dx, dy+1)){
-		for(var i=1;i>=0;i--){
-			for(var j=1;j>=0;j--){
-				if(dropping[i][j]>0){
-					var collision=false;
-					var fy=0;
-					while(collision==false){
-						if(stage[dy+i+fy+1][dx+j]>0){
-							collision=true;
-						}else{
-							fy++;
+		if(dy<1){
+			fgCtx.globalAlpha=.5;
+			fgCtx.fillStyle="black";
+			fgCtx.fillRect(0, 0, fg.width, fg.height);
+			document.getElementById("state").innerHTML="失格";
+			document.getElementById("state").style.width="360px";
+			dropState=GAMEOVER;
+			playSound(2);
+			return true;
+		}else{
+			for(var i=1;i>=0;i--){
+				for(var j=1;j>=0;j--){
+					if(dropping[i][j]>0){
+						var collision=false;
+						var fy=0;
+						while(collision==false){
+							if(stage[dy+i+fy+1][dx+j]>0){
+								collision=true;
+							}else{
+								fy++;
+							}
 						}
+						stage[dy+i+fy][dx+j]=dropping[i][j];
 					}
-					stage[dy+i+fy][dx+j]=dropping[i][j];
 				}
 			}
-		}
 
-		var isCleared=false;
-		while(isCleared==false){
-			if(clearHorizontal()+clearVertical()==0)isCleared=true;
-			applyDiff();
+			var isCleared=false;
+			while(isCleared==false){
+				var lines=clearHorizontal()+clearVertical();
+				if(lines==0){
+					isCleared=true;
+					playSound(0);
+				}else{
+					score+=lines*500;
+					scoreDOM.innerHTML="SCORE:"+score;
+					playSound(1);
+				}
+				applyDiff();
+
+			}
+			newDropping();
+			return true;
 		}
-		newDropping();
-		return true;
 	}else{
 		dy++;
 	}
@@ -301,6 +354,7 @@ function rotateRight(){
 
 function update(){
 	var isCollide=false;
+
 	if(dropState==DROPPING){
 		var now=new Date();
 		if(isPushed.left && now - eventTimer.left > eventDelay){
@@ -335,6 +389,7 @@ function update(){
 		dropBlock();
 		dropTimer=new Date();
 	}
+
 }
 
 
@@ -356,6 +411,7 @@ function clearHorizontal(){
 						stageDiff[i][bondStart+k]=1;
 					}
 					line++;
+					score+=match*50;
 				}
 				bondStart=j;
 				beforeColor=stage[i][j];
@@ -385,6 +441,7 @@ function clearVertical(){
 						stageDiff[bondStart-k][j]=1;
 					}
 					line++;
+					score+=match*50;
 				}
 				bondStart=i;
 				beforeColor=stage[i][j];
@@ -434,7 +491,13 @@ function pushBlocks(){
 
 function gameLoop(){
 	if(new Date() - frameTimer>updateDelay){
-		update();
+		if(dropState==GAMEOVER){
+			if(bgm.volume>0){
+				bgm.volume-=0.01;
+			}
+		}else{
+			update();
+		}
 		clearFg();
 		drawBlocks();
 		if(dropState==DROPPING)drawDropping();

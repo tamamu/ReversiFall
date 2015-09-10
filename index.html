@@ -9,12 +9,36 @@
 			margin: 0;
 			padding: 0;
 		}
+		#score{
+			z-index:4;
+			position: absolute;
+			left:0;
+			top:0;
+			font-size:16px;
+			font-weight:bold;
+			color: white;
+		}
+		#state{
+			z-index:3;
+			position: fixed;
+			width: 0px;
+			height: 640px;
+			text-align:center;
+			line-height:640px;
+			font-size:64px;
+			font-weight:bold;
+			color: red;
+			text-shadow: 3px 3px 4px white;
+			transition: all 1s;
+		}
 		#bg{
+			z-index:1;
 			position: absolute;
 			left:0;
 			top: 0;
 		}
 		#fg{
+			z-index:2;
 			position:absolute;
 			left:0;
 			top:0;
@@ -22,6 +46,8 @@
 	</style>
 </head>
 <body>
+	<p id="score">SCORE:0</p>
+	<p id="state"></p>
 	<canvas id="bg"></canvas>
 	<canvas id="fg"></canvas>
 </body>
