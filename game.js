@@ -47,7 +47,7 @@ var dropTimer=new Date();
 var eventTimer=new Date();
 var updateDelay=1000/60;
 var dropDelay=1000;
-var eventDelay=80;
+var eventDelay=100;
 
 var isPushed={left: false, up: false, right: false, down: false, z:false, x:false};
 var eventTimer={left: 0, up: 0, right: 0, down: 0, z: 0, x:0};
@@ -55,6 +55,9 @@ var dropState=0,DROPPING=0,CLEAR_LINE=1,SLIDE_BLOCKS=2,GAMEOVER=3;
 
 var dx=3;
 var dy=0;
+
+var stageBack=new Image();
+stageBack.src="bg.png";
 
 var white=new Image();
 white.src="white_stone.png";
@@ -67,6 +70,7 @@ frame.src="frame.png";
 
 var bgm=new Audio("bgm.mp3");
 bgm.loop=true;
+bgm.volume=.75;
 bgm.play();
 
 var sound={};
@@ -109,10 +113,13 @@ function playSound(num){
 }
 
 function drawStage(){
+	/*
 	bgCtx.fillStyle="black";
 	bgCtx.fillRect(0, 0, bg.width, bg.height);
 	bgCtx.fillStyle="green";
 	bgCtx.fillRect(30, 0, 300, 640);
+	*/
+	bgCtx.drawImage(stageBack, 0, 0);
 }
 
 function drawBlocks(){
@@ -282,7 +289,6 @@ function rotateLeft(){
 			}
 		}
 		if(collisionLeft || dx<1){
-			console.log("collision left");
 			for(var i=0;i<2;i++){
 				for(var j=0;j<2;j++){
 					if(t[i][j]>0 && stage[dy+i][dx+j+1]>0){
